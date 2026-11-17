@@ -30,6 +30,12 @@ def load_csv_data():
             line = 1
             for row in reader:
                 line += 1
+                if None in row.values() or None in row:
+                    print(f"Error: line {line} is missing a value.")
+                    sys.exit(1)
+                if row['assignment'].strip() == '':
+                    print(f"Error: line {line} has no assignment name.")
+                    sys.exit(1)
                 try:
                     assignments.append({
                         'assignment': row['assignment'],
@@ -41,6 +47,15 @@ def load_csv_data():
                     print(f"Error: line {line} has a score or weight that is not a number.")
                     sys.exit(1)
         return assignments
+    except UnicodeDecodeError:
+        print("Error: the file is not a valid UTF-8 text file.")
+        sys.exit(1)
+    except IsADirectoryError:
+        print(f"Error: '{filename}' is a folder, not a CSV file.")
+        sys.exit(1)
+    except PermissionError:
+        print(f"Error: no permission to read '{filename}'.")
+        sys.exit(1)
     except Exception as e:
         print(f"An error occurred while reading the file: {e}")
         sys.exit(1)
@@ -51,6 +66,13 @@ def evaluate_grades(data):
     if len(data) == 0:
         print("Error: the file has no assignments.")
         return
+
+    names = []
+    for item in data:
+        if item['assignment'] in names:
+            print(f"Error: assignment '{item['assignment']}' appears more than once.")
+            return
+        names.append(item['assignment'])
 
     for item in data:
         if item['group'] != 'Formative' and item['group'] != 'Summative':
@@ -77,13 +99,13 @@ def evaluate_grades(data):
         elif item['group'] == 'Summative':
             summative_weight += item['weight']
 
-    if total_weight != 100:
+    if round(total_weight, 2) != 100:
         print(f"Error: total weight is {total_weight}, it must be 100.")
         return
-    if formative_weight != 60:
+    if round(formative_weight, 2) != 60:
         print(f"Error: Formative weight is {formative_weight}, it must be 60.")
         return
-    if summative_weight != 40:
+    if round(summative_weight, 2) != 40:
         print(f"Error: Summative weight is {summative_weight}, it must be 40.")
         return
 
