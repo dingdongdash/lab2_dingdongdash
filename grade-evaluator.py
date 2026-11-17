@@ -14,13 +14,28 @@ def load_csv_data():
     try:
         with open(filename, mode='r', encoding='utf-8') as file:
             reader = csv.DictReader(file)
+            needed = ['assignment', 'group', 'score', 'weight']
+            if reader.fieldnames is None:
+                print("Error: the file is empty.")
+                sys.exit(1)
+            for name in needed:
+                if name not in reader.fieldnames:
+                    print(f"Error: the file is missing the '{name}' column.")
+                    sys.exit(1)
+
+            line = 1
             for row in reader:
-                assignments.append({
-                    'assignment': row['assignment'],
-                    'group': row['group'],
-                    'score': float(row['score']),
-                    'weight': float(row['weight'])
-                })
+                line += 1
+                try:
+                    assignments.append({
+                        'assignment': row['assignment'],
+                        'group': row['group'],
+                        'score': float(row['score']),
+                        'weight': float(row['weight'])
+                    })
+                except (ValueError, TypeError):
+                    print(f"Error: line {line} has a score or weight that is not a number.")
+                    sys.exit(1)
         return assignments
     except Exception as e:
         print(f"An error occurred while reading the file: {e}")
