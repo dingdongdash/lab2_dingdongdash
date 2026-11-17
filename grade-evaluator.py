@@ -3,7 +3,11 @@ import sys
 import os
 
 def load_csv_data():
-    filename = input("Enter the name of the CSV file to process (e.g., grades.csv): ")
+    try:
+        filename = input("Enter the name of the CSV file to process (e.g., grades.csv): ").strip()
+    except EOFError:
+        print("Error: no file name was given.")
+        sys.exit(1)
 
     if not os.path.exists(filename):
         print(f"Error: The file '{filename}' was not found.")
@@ -12,7 +16,7 @@ def load_csv_data():
     assignments = []
 
     try:
-        with open(filename, mode='r', encoding='utf-8') as file:
+        with open(filename, mode='r', encoding='utf-8-sig') as file:
             reader = csv.DictReader(file)
             needed = ['assignment', 'group', 'score', 'weight']
             if reader.fieldnames is None:
@@ -29,7 +33,7 @@ def load_csv_data():
                 try:
                     assignments.append({
                         'assignment': row['assignment'],
-                        'group': row['group'],
+                        'group': row['group'].strip().capitalize(),
                         'score': float(row['score']),
                         'weight': float(row['weight'])
                     })
@@ -48,9 +52,17 @@ def evaluate_grades(data):
         print("Error: the file has no assignments.")
         return
 
+    for item in data:
+        if item['group'] != 'Formative' and item['group'] != 'Summative':
+            print(f"Error: group for '{item['assignment']}' must be Formative or Summative.")
+            return
+        if item['weight'] < 0:
+            print(f"Error: weight for '{item['assignment']}' cannot be negative.")
+            return
+
     # a) scores must be between 0 and 100
     for item in data:
-        if item['score'] < 0 or item['score'] > 100:
+        if not (0 <= item['score'] <= 100):
             print(f"Error: score for '{item['assignment']}' is {item['score']}, it must be between 0 and 100.")
             return
 

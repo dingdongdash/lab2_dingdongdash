@@ -12,7 +12,15 @@ fi
 timestamp=$(date +%Y%m%d-%H%M%S)
 new_name="grades_$timestamp.csv"
 
-mv grades.csv "archive/$new_name"
+if [ -e "archive/$new_name" ]; then
+    echo "Error: archive/$new_name already exists. Wait a second and try again."
+    exit 1
+fi
+
+if ! mv grades.csv "archive/$new_name"; then
+    echo "Error: could not move grades.csv."
+    exit 1
+fi
 touch grades.csv
 
 echo "$timestamp: grades.csv -> archive/$new_name" >> organizer.log
